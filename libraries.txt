@@ -1,0 +1,8 @@
+# Wokwi Library List
+# See https://docs.wokwi.com/guides/libraries
+
+ThingSpeak
+SSD1306Ascii
+MPU6050_light
+DHT sensor library for ESPx
+FirebaseJson
