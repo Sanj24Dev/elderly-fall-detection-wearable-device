@@ -2,7 +2,7 @@
 
 WiFiClient client;
 
-void setup_WiFi () {  
+void setup_WiFi () {
   Serial.print("Connecting to WiFi");
   WiFi.begin(WIFI_SSID, WIFI_PWD, 6);
   while (WiFi.status() != WL_CONNECTED) {
@@ -17,18 +17,27 @@ void setup_WiFi () {
 
 void push_data(sensor d, int myChannelNumber, const char* myApiKey) {
   if (isnan(d.accX) || isnan(d.accY) || isnan(d.accZ) ||
-      isnan(d.temp) || isnan(d.humidity)) {
+      isnan(d.temp) || isnan(d.distance)) {
     Serial.printf("Invalid data, skipping.\n");
     return;
   }
 
-  ThingSpeak.setField(1, d.accX);
-  ThingSpeak.setField(2, d.accY);
-  ThingSpeak.setField(3, d.accZ);
+  float acc = sqrt(
+                d.accX * d.accX +
+                d.accY * d.accY +
+                d.accZ * d.accZ
+              );
+  float rot = sqrt(
+                d.rotX * d.rotX +
+                d.rotY * d.rotY +
+                d.rotZ * d.rotZ
+              );
+
+  ThingSpeak.setField(1, acc);
+  ThingSpeak.setField(2, rot);
+  ThingSpeak.setField(3, d.distance);
   ThingSpeak.setField(4, d.temp);
-  ThingSpeak.setField(5, d.humidity);
-  ThingSpeak.setField(6, d.motion);
-  ThingSpeak.setField(7, d.status);
+  ThingSpeak.setField(5, d.status);
 
   int x = ThingSpeak.writeFields(myChannelNumber, myApiKey);
 

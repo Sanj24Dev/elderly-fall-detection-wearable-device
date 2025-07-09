@@ -4,5 +4,4 @@
 ThingSpeak
 SSD1306Ascii
 MPU6050_light
-DHT sensor library for ESPx
 FirebaseJson

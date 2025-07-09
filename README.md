@@ -93,15 +93,5 @@ Make sure to update your `THINGSPEAK_CHANNEL_NUMBER` and `THINGSPEAK_API_KEY` in
 
 ---
 
-## 📊 Sample Output
-
-<pre>
-System monitor:
-    Uptime: 00:01:23
-    Free space in heap: 20984 bytes
-Sensor Data:
-    MPU6050: ACC=0.01,0.98,9.80
-    DHT22: T=36.50, Humidity=60.20
-    PIR: Moving
-[FALL DETECTED] Acceleration = 3.15g
-</pre>
+## 📷 Demo
+Check out the [demo video](./fall%20detection%20demo.mp4) to view the features the deivce.

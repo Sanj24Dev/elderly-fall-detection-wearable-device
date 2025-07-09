@@ -34,4 +34,8 @@ void MPU6050_Gyro::read_MPU6050 (sensor *data) {
   data->accX = mpu.getAccX();
   data->accY = mpu.getAccY();
   data->accZ = mpu.getAccZ();
+
+  data->rotX = mpu.getGyroX();
+  data->rotY = mpu.getGyroY();
+  data->rotZ = mpu.getGyroZ();
 }

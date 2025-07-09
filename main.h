@@ -16,10 +16,12 @@ typedef struct {
   float accX;
   float accY;
   float accZ;
+  float rotX;
+  float rotY;
+  float rotZ;
   float temp;
-  float humidity;
+  float distance;
 
-  bool motion;
   patient_status status;
 } sensor;
 
