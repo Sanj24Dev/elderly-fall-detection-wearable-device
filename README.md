@@ -49,22 +49,24 @@ This project is fully tested and simulated using [Wokwi](https://wokwi.com/):
 
 ## 🚀 How it Works
 
-### 1. **Task: `sense_motion`**
-- Reads the PIR sensor state every 500ms.
-- Updates the shared `motion` object.
+### 1. **Task: `check_distance`**
+- Reads the distance sensor state every 500ms.
+- Updates the shared `distance` object.
 
 ### 2. **Task: `get_sensor_data`**
 - Reads MPU6050 and DHT22 data every second.
 - Pushes the readings to ThingSpeak.
 - Displays temperature on OLED.
 
-### 3. **Task: `fall_detect`**
-- Waits for sensor data from the queue.
-- Calculates acceleration magnitude.
-- If above threshold (2.5g), detects a fall and updates status.
-
-### 4. **Task: `system_monitor`**
+### 3. **Task: `system_monitor`**
 - Prints system uptime and free heap memory every 5 seconds.
+
+### 4. **Task: `fall_detect`**
+- Waits for sensor data from the queue.
+- Calculates acceleration and rotation magnitude.
+- If above threshold, detects a fall and updates status.
+
+
 
 ---
 

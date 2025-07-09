@@ -89,6 +89,7 @@ void system_monitor (void *params) {
   }
 }
 
+// Task 4: Detect Fall
 void fall_detect(void *params) {
   sensor received_data;
   TickType_t last_fall_time = 0, fall_confirm_time = 0;
