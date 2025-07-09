@@ -1,12 +1,12 @@
 # Fall Detection and Health Monitoring System (FreeRTOS-based)
 
-This project implements a real-time, multitasking fall detection and health monitoring system using ESP32, developed and tested on the [Wokwi simulator](https://wokwi.com/). The system collects data from motion, temperature, and acceleration sensors, processes this data in real-time using FreeRTOS, and pushes relevant readings to ThingSpeak.
+This project implements a real-time, multitasking fall detection and health monitoring system using ESP32, developed and tested on the [Wokwi simulator](https://wokwi.com/). The system collects data from rotation, temperature, distance, and acceleration sensors, processes this data in real-time using FreeRTOS, and pushes relevant readings to ThingSpeak.
 
 ## 🧠 Features
 
 - **Fall Detection** using acceleration magnitude (MPU6050)
-- **Body Monitoring** (Temperature & Humidity via DHT22)
-- **Motion Detection** (PIR sensor)
+- **Body Monitoring** (Temperature using NTC Thermistor)
+- **Distance calculation** (HCSR04 sensor)
 - **OLED Display** output for temperature and fall alerts
 - **Wi-Fi connectivity** to upload sensor data to [ThingSpeak](https://thingspeak.com/)
 - **RTOS** based architecture with multiple concurrent tasks
@@ -24,10 +24,12 @@ This project implements a real-time, multitasking fall detection and health moni
 ├── oled.h <br>
 ├── mpu6050.cpp # MPU6050 class for reading accelerometer/gyro <br>
 ├── mpu6050.h <br>
-├── dht22.cpp # DHT22 temperature and humidity sensor class <br>
-├── dht22.h <br>
-├── pir.cpp # PIR sensor state detection class <br>
-├── pir.h <br>
+├── ntc.cpp # NTC temperature sensor class <br>
+├── ntc.h <br>
+├── hcsr04.cpp # Distance sensor detection class <br>
+├── hcsr04.h <br>
+├── buzzer.cpp # Buzzer class <br>
+├── buzzer.h <br>
 ├── wokwi-project.txt # Contains wokwi url to run the project <br>
 └── README.md # This file
 
@@ -40,8 +42,9 @@ This project is fully tested and simulated using [Wokwi](https://wokwi.com/):
 
 - ✅ ESP32 Dev Module  
 - ✅ MPU6050 (I2C)  
-- ✅ DHT22  
-- ✅ PIR Motion Sensor  
+- ✅ NTC
+- ✅ HCSR04 Sensor  
+- ✅ Buzzer  
 - ✅ SSD1306 OLED Display (I2C)
 - ✅ Wi-Fi 
 
@@ -54,9 +57,8 @@ This project is fully tested and simulated using [Wokwi](https://wokwi.com/):
 - Updates the shared `distance` object.
 
 ### 2. **Task: `get_sensor_data`**
-- Reads MPU6050 and DHT22 data every second.
+- Reads MPU6050 data every second.
 - Pushes the readings to ThingSpeak.
-- Displays temperature on OLED.
 
 ### 3. **Task: `system_monitor`**
 - Prints system uptime and free heap memory every 5 seconds.
@@ -67,16 +69,15 @@ This project is fully tested and simulated using [Wokwi](https://wokwi.com/):
 - If above threshold, detects a fall and updates status.
 
 
-
 ---
 
 ## 📡 Data Sent to ThingSpeak
 
 The `push_data()` function sends the following fields to your ThingSpeak channel:
 - Body temperature
-- Humidity
-- Accelerometer data (X, Y, Z)
-- Motion status
+- Accelerometer data
+- Rotation data
+- Distance
 - Fall status
 
 Make sure to update your `THINGSPEAK_CHANNEL_NUMBER` and `THINGSPEAK_API_KEY` in `conf.h`.
@@ -88,7 +89,7 @@ Make sure to update your `THINGSPEAK_CHANNEL_NUMBER` and `THINGSPEAK_API_KEY` in
 1. Clone this repo or load the project into [Wokwi](https://wokwi.com/).
 2. Configure the following in `conf.h`:
    - I2C pins and addresses
-   - DHT22 pin
+   - Input/output pin for sensors using GPIO
    - ThingSpeak credentials
 3. Run the simulation.
 4. Monitor the serial output and ThingSpeak dashboard for data updates.
