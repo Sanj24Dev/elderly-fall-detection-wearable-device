@@ -64,7 +64,7 @@ void get_sensor_data(void *params) {
     // String str = "Body temp: " + String(local_data.temp) + " ℃\nDistance: " + String(local_data.distance) + " cm";
     // display.print_message(str.c_str());
     xQueueSend(sensor_data_queue, &local_data, 0);
-    push_data(local_data, THINGSPEAK_CHANNEL_NUMBER, THINGSPEAK_API_KEY); // has a 10s delay for thingspeak limit of sampling rate
+    // push_data(local_data, THINGSPEAK_CHANNEL_NUMBER, THINGSPEAK_API_KEY); // has a 10s delay for thingspeak limit of sampling rate
 
     // Print stack usage
     // UBaseType_t watermark = uxTaskGetStackHighWaterMark(NULL);
@@ -73,23 +73,6 @@ void get_sensor_data(void *params) {
   }
 }
 
-
-// Task 3: Monitor system uptime and heap
-void system_monitor (void *params) {
-  while (1) {
-    uint32_t uptime_sec = xTaskGetTickCount() / 1000;
-    size_t freeHeap = esp_get_free_heap_size();
-    Serial.printf("System monitor:\n");
-    Serial.printf("\tUptime: %02d:%02d:%02d\n", uptime_sec / 3600, (uptime_sec / 60) % 60, uptime_sec % 60);
-    Serial.printf("\tFree space in heap: %d bytes\n", freeHeap);
-    // Print stack usage
-    // UBaseType_t watermark = uxTaskGetStackHighWaterMark(NULL);
-    // Serial.printf("[System Task] Stack high watermark: %u words\n", watermark);
-    vTaskDelay(pdMS_TO_TICKS(5000));
-  }
-}
-
-// Task 4: Detect Fall
 void fall_detect(void *params) {
   sensor received_data;
   TickType_t last_fall_time = 0, fall_confirm_time = 0;
@@ -169,6 +152,40 @@ void fall_detect(void *params) {
 }
 
 
+// Task 3: Monitor system uptime and heap
+void cloud_update (void *params) {
+  sensor_data cloud_data;
+  while (1) {
+    if (xSemaphoreTake(data_mutex, portMAX_DELAY)) {
+      cloud_data = local_data;
+      xSemaphoreGive(data_mutex);
+    }
+
+    // Push data to Thingspeak
+    push_data(cloud_data, THINGSPEAK_CHANNEL_NUMBER, THINGSPEAK_API_KEY);
+    // Print stack usage
+    // UBaseType_t watermark = uxTaskGetStackHighWaterMark(NULL);
+    // Serial.printf("[System Task] Stack high watermark: %u words\n", watermark);
+    vTaskDelay(pdMS_TO_TICKS(5000));
+  }
+}
+
+// Task 3: Monitor system uptime and heap
+void system_monitor (void *params) {
+  while (1) {
+    uint32_t uptime_sec = xTaskGetTickCount() / 1000;
+    size_t freeHeap = esp_get_free_heap_size();
+    Serial.printf("System monitor:\n");
+    Serial.printf("\tUptime: %02d:%02d:%02d\n", uptime_sec / 3600, (uptime_sec / 60) % 60, uptime_sec % 60);
+    Serial.printf("\tFree space in heap: %d bytes\n", freeHeap);
+    // Print stack usage
+    // UBaseType_t watermark = uxTaskGetStackHighWaterMark(NULL);
+    // Serial.printf("[System Task] Stack high watermark: %u words\n", watermark);
+    vTaskDelay(pdMS_TO_TICKS(5000));
+  }
+}
+
+
 
 void setup() {
   Serial.begin(115200);
@@ -207,27 +224,30 @@ void setup() {
 
   // Create tasks
   BaseType_t result;
-  result = xTaskCreate(get_sensor_data, "Sensor Data Acquisition", 4096, NULL, 2, NULL);
+  result = xTaskCreatePinnedToCore(get_sensor_data, "Sensor Data Acquisition", 4096, NULL, 1, NULL, 1);
   if (result != pdPASS) {
     Serial.println("Failed to create Sensor data acquisition task!");
   }
 
-  result = xTaskCreate(check_distance, "Check distance", 2048, NULL, 1, NULL);
+  result = xTaskCreatePinnedToCore(check_distance, "Check distance", 2048, NULL, 1, NULL, 1);
   if (result != pdPASS) {
     Serial.println("Failed to create System Monitor task!");
   }
 
-  result = xTaskCreate(system_monitor, "System Monitor", 2048, NULL, 1, NULL);
-  if (result != pdPASS) {
-    Serial.println("Failed to create System Monitor task!");
-  }
-
-  result = xTaskCreate(fall_detect, "Fall Detection", 4096, NULL, 3, NULL);
+  result = xTaskCreatePinnedToCore(fall_detect, "Fall Detection", 4096, NULL, 2, NULL, 1);
   if (result != pdPASS) {
     Serial.println("Failed to create Fall Detection task!");
   }
 
+  result = xTaskCreatePinnedToCore(cloud_update, "Cloud update", 2048, NULL, 1, NULL, 0);
+  if (result != pdPASS) {
+    Serial.println("Failed to create Cloud update task!");
+  }
 
+  result = xTaskCreatePinnedToCore(system_monitor, "System Monitor", 2048, NULL, 2, NULL, 0);
+  if (result != pdPASS) {
+    Serial.println("Failed to create System Monitor task!");
+  }
 }
 
 void loop() {
